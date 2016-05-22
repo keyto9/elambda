@@ -7,7 +7,7 @@ lmdsrc = sys.argv[1]
 lmdsrc = open(lmdsrc, 'r').read()
 params = {'lambda':lmdsrc}
 ecdprm = urllib.parse.urlencode(params)
-url = 'http://localhost:10086/verify?%s'
+url = 'http://45.32.54.118:10086/verify?%s'
 try:
 	ret = urllib.request.urlopen(url % ecdprm).read()
 except:
