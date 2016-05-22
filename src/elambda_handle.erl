@@ -1,0 +1,49 @@
+-module(elambda_handle).
+-export([handle/3]).
+
+
+handle('POST', "verify", Req) ->
+	handle('GET', "verify", Req);
+handle('GET', "verify", Req) ->
+	case Req:parse_qs() of
+	[_|_]=QList ->
+		next;
+	_ ->
+		QList = Req:parse_post()
+	end,
+	Lambda = proplists:get_value("lambda", QList),
+	case catch elambda:run(Lambda) of
+	{result,true} ->
+		return(Req, "accepted");
+	{result,false} ->
+		return(Req, "wrong answer");
+	{result,timeout} ->
+		return(Req, "time limit exceeded");
+	_ ->
+		return(Req, "unknown error")
+	end;
+handle('POST', "evaluate", Req) ->
+	handle('GET', "evaluate", Req);
+handle('GET', "evaluate", Req) ->
+	case Req:parse_qs() of
+	[_|_]=QList ->
+		next;
+	_ ->
+		QList = Req:parse_post()
+	end,
+	Lambda = proplists:get_value("lambda", QList),
+	case catch elambda:val(Lambda) of
+	{result,N} when is_integer(N) ->
+		return(Req, "result: " ++ integer_to_list(N));
+	{result,timeout} ->
+		return(Req, "time limit exceeded");
+	_ ->
+		return(Req, "unknown error")
+	end;
+handle(_Method, _Path, Req) ->
+	return(Req, "invalid request!").
+
+
+return(Req, Reply) ->
+	Req:ok({"text/html; charset=utf-8",Reply}).
+
