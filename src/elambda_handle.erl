@@ -54,7 +54,9 @@ handle('GET', "evaluate", Req) ->
 	Lambda = proplists:get_value("lambda", QList),
 	case catch elambda:evaluate(Lambda) of
 	{result,N} when is_integer(N) ->
-		return(Req, "result: " ++ integer_to_list(N));
+		RetData = "result:\n" ++ integer_to_list(N)
+						++ "\n\ncode:\n" ++ Lambda,
+		return(Req, RetData);
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
 	_ ->
