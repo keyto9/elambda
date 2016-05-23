@@ -57,6 +57,10 @@ handle('GET', "evaluate", Req) ->
 		RetData = "result:\n" ++ integer_to_list(N)
 						++ "\n\ncode:\n" ++ Lambda,
 		return(Req, RetData);
+	{result,N} when is_atom(N) ->
+		RetData = "result:\n" ++ atom_to_list(N)
+						++ "\n\ncode:\n" ++ Lambda,
+		return(Req, RetData);
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
 	_ ->
