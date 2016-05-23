@@ -2,9 +2,9 @@
 -export([handle/3]).
 
 
-handle('POST', "verify", Req) ->
-	handle('GET', "verify", Req);
-handle('GET', "verify", Req) ->
+handle('POST', "verify_fibonacci", Req) ->
+	handle('GET', "verify_fibonacci", Req);
+handle('GET', "verify_fibonacci", Req) ->
 	case Req:parse_qs() of
 	[_|_]=QList ->
 		next;
@@ -12,7 +12,27 @@ handle('GET', "verify", Req) ->
 		QList = Req:parse_post()
 	end,
 	Lambda = proplists:get_value("lambda", QList),
-	case catch elambda:run(Lambda) of
+	case catch elambda:verify_fibonacci(Lambda) of
+	{result,true} ->
+		return(Req, "accepted");
+	{result,false} ->
+		return(Req, "wrong answer");
+	{result,timeout} ->
+		return(Req, "time limit exceeded");
+	_ ->
+		return(Req, "unknown error")
+	end;
+handle('POST', "verify_factorial", Req) ->
+	handle('GET', "verify_factorial", Req);
+handle('GET', "verify_factorial", Req) ->
+	case Req:parse_qs() of
+	[_|_]=QList ->
+		next;
+	_ ->
+		QList = Req:parse_post()
+	end,
+	Lambda = proplists:get_value("lambda", QList),
+	case catch elambda:verify_factorial(Lambda) of
 	{result,true} ->
 		return(Req, "accepted");
 	{result,false} ->
@@ -32,7 +52,7 @@ handle('GET', "evaluate", Req) ->
 		QList = Req:parse_post()
 	end,
 	Lambda = proplists:get_value("lambda", QList),
-	case catch elambda:val(Lambda) of
+	case catch elambda:evaluate(Lambda) of
 	{result,N} when is_integer(N) ->
 		return(Req, "result: " ++ integer_to_list(N));
 	{result,timeout} ->

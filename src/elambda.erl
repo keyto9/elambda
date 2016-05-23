@@ -1,6 +1,6 @@
 -module(elambda).
 -export([start/0]).
--export([run/1,val/1]).
+-export([verify_fibonacci/1,verify_factorial/1,evaluate/1]).
 -compile(export_all).
 
 
@@ -26,7 +26,7 @@ start() ->
 	application:start(?MODULE).
 
 
-run(Lambda) when is_list(Lambda) ->
+verify_fibonacci(Lambda) when is_list(Lambda) ->
 	erlang:process_flag(trap_exit, true),
 	flush_msg(),
 	Ref = erlang:make_ref(),
@@ -56,7 +56,37 @@ run(Lambda) when is_list(Lambda) ->
 	end.
 
 
-val(Lambda) when is_list(Lambda) ->
+verify_factorial(Lambda) when is_list(Lambda) ->
+	erlang:process_flag(trap_exit, true),
+	flush_msg(),
+	Ref = erlang:make_ref(),
+	Father = erlang:self(),
+	Pid = erlang:spawn_link(fun() ->
+		gen(Lambda),
+		Factorial = ?MOD_ATOM:?FUN_ATOM(),
+		Result = lists:all(fun(_Idx) ->
+			<<N:8>> = crypto:rand_bytes(1),
+			factorial(N) =:= Factorial(N)
+		end, lists:seq(1, 20)),
+		Father ! {result,Ref,Result}
+	end),
+	receive
+	{result,Ref,Result} ->
+		{result,Result};
+	{'EXIT',Pid,_ErrTypeReason} ->
+		{result,unknown}
+	after 5000 ->
+		case erlang:is_process_alive(Pid) of
+		true ->
+			exit(Pid, kill),
+			{result,timeout};
+		_ ->
+			{result,unknown}
+		end
+	end.
+
+
+evaluate(Lambda) when is_list(Lambda) ->
 	erlang:process_flag(trap_exit, true),
 	flush_msg(),
 	Ref = erlang:make_ref(),
@@ -96,6 +126,14 @@ fibonacci(0, A, _B) ->
 	A;
 fibonacci(N, A, B) ->
 	fibonacci(N-1, B, A+B).
+
+
+factorial(N) when is_integer(N), N >= 0 ->
+	factorial(N, 1).
+factorial(0, A) ->
+	A;
+factorial(N, A) ->
+	factorial(N-1, A*N).
 
 
 gen(Lambda) when is_list(Lambda) ->
