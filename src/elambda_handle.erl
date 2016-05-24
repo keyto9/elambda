@@ -13,9 +13,9 @@ handle('GET', "verify_fibonacci", Req) ->
 	end,
 	Lambda = proplists:get_value("lambda", QList),
 	case catch elambda:verify_fibonacci(Lambda) of
-	{result,true} ->
-		return(Req, "accepted");
-	{result,false} ->
+	{result,true,Counter} ->
+		return(Req, integer_to_list(Counter));
+	{result,false,_Counter} ->
 		return(Req, "wrong answer");
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
@@ -53,12 +53,14 @@ handle('GET', "evaluate", Req) ->
 	end,
 	Lambda = proplists:get_value("lambda", QList),
 	case catch elambda:evaluate(Lambda) of
-	{result,N} when is_integer(N) ->
-		RetData = "result:\n" ++ integer_to_list(N)
+	{result,Result,Counter} when is_integer(Result) ->
+		RetData = "counter: \n" ++ integer_to_list(Counter)
+				++ "result:\n" ++ integer_to_list(Result)
 						++ "\n\ncode:\n" ++ Lambda,
 		return(Req, RetData);
-	{result,N} when is_atom(N) ->
-		RetData = "result:\n" ++ atom_to_list(N)
+	{result,Result,Counter} when is_atom(Result) ->
+		RetData = "counter: \n" ++ integer_to_list(Counter)
+				++ "result:\n" ++ atom_to_list(Result)
 						++ "\n\ncode:\n" ++ Lambda,
 		return(Req, RetData);
 	{result,timeout} ->

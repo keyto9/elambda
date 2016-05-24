@@ -28,24 +28,26 @@ start() ->
 
 verify_fibonacci(Lambda) when is_list(Lambda) ->
 	erlang:process_flag(trap_exit, true),
+	Timeout = elambda_cfg:get_timeout(),
 	flush_msg(),
 	Ref = erlang:make_ref(),
 	Father = erlang:self(),
 	Pid = erlang:spawn_link(fun() ->
 		gen(Lambda),
+		erlang:put(counter, 0),
 		Fibonacci = ?MOD_ATOM:?FUN_ATOM(),
-		Result = lists:all(fun(_Idx) ->
-			<<N:8>> = crypto:rand_bytes(1),
+		Result = lists:all(fun(N) ->
 			fibonacci(N) =:= Fibonacci(N)
-		end, lists:seq(1, 20)),
-		Father ! {result,Ref,Result}
+		end, elambda_cfg:get_fibargs()),
+		Counter = erlang:get(counter),
+		Father ! {result,Ref,Result,Counter}
 	end),
 	receive
-	{result,Ref,Result} ->
-		{result,Result};
+	{result,Ref,Result,Counter} ->
+		{result,Result,Counter};
 	{'EXIT',Pid,_ErrTypeReason} ->
 		{result,unknown}
-	after 5000 ->
+	after Timeout ->
 		case erlang:is_process_alive(Pid) of
 		true ->
 			exit(Pid, kill),
@@ -58,6 +60,7 @@ verify_fibonacci(Lambda) when is_list(Lambda) ->
 
 verify_factorial(Lambda) when is_list(Lambda) ->
 	erlang:process_flag(trap_exit, true),
+	Timeout = elambda_cfg:get_timeout(),
 	flush_msg(),
 	Ref = erlang:make_ref(),
 	Father = erlang:self(),
@@ -75,7 +78,7 @@ verify_factorial(Lambda) when is_list(Lambda) ->
 		{result,Result};
 	{'EXIT',Pid,_ErrTypeReason} ->
 		{result,unknown}
-	after 5000 ->
+	after Timeout ->
 		case erlang:is_process_alive(Pid) of
 		true ->
 			exit(Pid, kill),
@@ -88,20 +91,23 @@ verify_factorial(Lambda) when is_list(Lambda) ->
 
 evaluate(Lambda) when is_list(Lambda) ->
 	erlang:process_flag(trap_exit, true),
+	Timeout = elambda_cfg:get_timeout(),
 	flush_msg(),
 	Ref = erlang:make_ref(),
 	Father = erlang:self(),
 	Pid = erlang:spawn_link(fun() ->
 		gen(Lambda),
+		erlang:put(counter, 0),
 		Result = ?MOD_ATOM:?FUN_ATOM(),
-		Father ! {result,Ref,Result}
+		Counter = erlang:get(counter),
+		Father ! {result,Ref,Result,Counter}
 	end),
 	receive
-	{result,Ref,Result} ->
-		{result,Result};
+	{result,Ref,Result,Counter} ->
+		{result,Result,Counter};
 	{'EXIT',Pid,_ErrTypeReason} ->
 		{result,unknown}
-	after 5000 ->
+	after Timeout ->
 		case erlang:is_process_alive(Pid) of
 		true ->
 			exit(Pid, kill),
@@ -180,6 +186,15 @@ modtail() ->
 'less'(X) ->
 	fun(Y) ->
 		X < Y
+	end.
+
+
+update_counter() ->
+	case erlang:get(counter) of
+	Counter when is_integer(Counter) ->
+		erlang:put(counter, Counter+1);
+	_ ->
+		erlang:put(counter, 1)
 	end.
 
 
@@ -271,12 +286,10 @@ argfmt(Var) ->
 accept_application(Tokens, HeadPart, TailPart) ->
 	case Tokens of
 	[{leftp,_}|T] ->
-		HeadAdd = "( ", TailAdd = " )",
+		HeadAdd = "(begin update_counter(), ", TailAdd = " end)",
 		HeadPart2 = HeadPart ++ HeadAdd,
 		TailPart2 = TailAdd ++ TailPart,
 		{ok,FunExp,T2} = accept_expression(T, "", ""),
-		% io:format("~s~n", [FunExp]),
-		% io:format("~p~n", [T2]),
 		{ok,ArgExp,T3} = accept_expression(T2, "", ""),
 		[{rightp,_}|Rest] = T3,
 		Body = FunExp ++ "( " ++ ArgExp ++ " )",
