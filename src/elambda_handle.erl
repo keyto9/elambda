@@ -55,13 +55,13 @@ handle('GET', "evaluate", Req) ->
 	case catch elambda:evaluate(Lambda) of
 	{result,Result,Counter} when is_integer(Result) ->
 		RetData = "counter: \n" ++ integer_to_list(Counter)
-				++ "result:\n" ++ integer_to_list(Result)
-						++ "\n\ncode:\n" ++ Lambda,
+				++ "\n\n   result: \n" ++ integer_to_list(Result)
+						++ "\n\n   code: \n" ++ Lambda,
 		return(Req, RetData);
 	{result,Result,Counter} when is_atom(Result) ->
 		RetData = "counter: \n" ++ integer_to_list(Counter)
-				++ "result:\n" ++ atom_to_list(Result)
-						++ "\n\ncode:\n" ++ Lambda,
+				++ "\n\n   result: \n" ++ atom_to_list(Result)
+						++ "\n\n   code: \n" ++ Lambda,
 		return(Req, RetData);
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
