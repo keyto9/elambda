@@ -12,7 +12,8 @@ handle('GET', "verify_fibonacci", Req) ->
 		QList = Req:parse_post()
 	end,
 	Lambda = proplists:get_value("lambda", QList),
-	case catch elambda:verify_fibonacci(Lambda) of
+	case catch gen_server:call(elambda_server,
+				{verify_fibonacci,Lambda}) of
 	{result,true,Counter} ->
 		return(Req, integer_to_list(Counter));
 	{result,false,_Counter} ->
@@ -32,7 +33,8 @@ handle('GET', "verify_factorial", Req) ->
 		QList = Req:parse_post()
 	end,
 	Lambda = proplists:get_value("lambda", QList),
-	case catch elambda:verify_factorial(Lambda) of
+	case catch gen_server:call(elambda_server,
+				{verify_factorial,Lambda}) of
 	{result,true} ->
 		return(Req, "accepted");
 	{result,false} ->
@@ -52,7 +54,8 @@ handle('GET', "evaluate", Req) ->
 		QList = Req:parse_post()
 	end,
 	Lambda = proplists:get_value("lambda", QList),
-	case catch elambda:evaluate(Lambda) of
+	case catch gen_server:call(elambda_server,
+						{evaluate,Lambda}) of
 	{result,Result,Counter} when is_integer(Result) ->
 		RetData = "counter: \n" ++ integer_to_list(Counter)
 				++ "   \n\nresult: \n" ++ integer_to_list(Result)
