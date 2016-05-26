@@ -28,6 +28,7 @@ handle_call({evaluate,Lambda}, _From, State) ->
 	Result ->
 		next
 	end,
+	catch write_log(Lambda),
 	{reply,Result,State+1,hibernate};
 handle_call({verify_factorial,Lambda}, _From, State) ->
 	case catch elambda:verify_factorial(Lambda) of
@@ -68,4 +69,8 @@ code_change(_OldVsn, State, _Extra) ->
 %%%============================================================================
 %%% Internal functions
 %%%============================================================================
-
+write_log(Lambda) ->
+	{{Year,Month,Day},{Hour,Minute,Second}} = erlang:localtime(),
+	FileName = io_lib:format("./log/submit_~p_~p_~p.log", [Year,Month,Day]),
+	Content = io_lib:format("[~p:~p:~p]\r\n~s\r\n\r\n", [Hour,Minute,Second,Lambda]),
+	file:write_file(FileName, Content, [append,delayed_write]).
