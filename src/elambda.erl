@@ -192,6 +192,18 @@ modtail() ->
 update_counter() ->
 	case erlang:get(counter) of
 	Counter when is_integer(Counter) ->
+		case (Counter rem 5 =:= 0) of
+		true ->
+			{memory,Memory} = erlang:process_info(self(), memory),
+			case (Memory > 999999) of
+			true ->
+				erlang:exit(memory_limit);
+			_ ->
+				ignore
+			end;
+		_ ->
+			ignore
+		end,
 		erlang:put(counter, Counter+1);
 	_ ->
 		erlang:put(counter, 1)

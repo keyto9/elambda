@@ -11,7 +11,7 @@ get_addr() ->
 
 %% timeout (ms)
 get_timeout() ->
-	1000.
+	2000.
 
 %% fib test cases
 get_fibargs() ->
