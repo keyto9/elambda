@@ -33,7 +33,7 @@ verify_fibonacci(Lambda) when is_list(Lambda) ->
 	Ref = erlang:make_ref(),
 	Father = erlang:self(),
 	Pid = erlang:spawn_link(fun() ->
-		gen(Lambda),
+		gen(Lambda), erlang:garbage_collect(),
 		erlang:put(counter, 0),
 		Fibonacci = ?MOD_ATOM:?FUN_ATOM(),
 		Result = lists:all(fun(N) ->
@@ -65,7 +65,7 @@ verify_factorial(Lambda) when is_list(Lambda) ->
 	Ref = erlang:make_ref(),
 	Father = erlang:self(),
 	Pid = erlang:spawn_link(fun() ->
-		gen(Lambda),
+		gen(Lambda), erlang:garbage_collect(),
 		Factorial = ?MOD_ATOM:?FUN_ATOM(),
 		Result = lists:all(fun(_Idx) ->
 			<<N:8>> = crypto:rand_bytes(1),
@@ -96,7 +96,7 @@ evaluate(Lambda) when is_list(Lambda) ->
 	Ref = erlang:make_ref(),
 	Father = erlang:self(),
 	Pid = erlang:spawn_link(fun() ->
-		gen(Lambda),
+		gen(Lambda), erlang:garbage_collect(),
 		erlang:put(counter, 0),
 		Result = ?MOD_ATOM:?FUN_ATOM(),
 		Counter = erlang:get(counter),
