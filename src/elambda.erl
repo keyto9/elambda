@@ -201,7 +201,7 @@ update_counter() ->
 		case (Counter rem 5 =:= 0) of
 		true ->
 			{memory,Memory} = erlang:process_info(self(), memory),
-			case (Memory > 9999999) of
+			case (Memory > 999999) of
 			true ->
 				erlang:exit(memory_limit);
 			_ ->
