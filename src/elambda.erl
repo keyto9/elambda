@@ -45,6 +45,8 @@ verify_fibonacci(Lambda) when is_list(Lambda) ->
 	receive
 	{result,Ref,Result,Counter} ->
 		{result,Result,Counter};
+	{'EXIT',Pid,memory_limit} ->
+		{result,memory_limit};
 	{'EXIT',Pid,_ErrTypeReason} ->
 		{result,unknown}
 	after Timeout ->
@@ -76,6 +78,8 @@ verify_factorial(Lambda) when is_list(Lambda) ->
 	receive
 	{result,Ref,Result} ->
 		{result,Result};
+	{'EXIT',Pid,memory_limit} ->
+		{result,memory_limit};
 	{'EXIT',Pid,_ErrTypeReason} ->
 		{result,unknown}
 	after Timeout ->
@@ -105,6 +109,8 @@ evaluate(Lambda) when is_list(Lambda) ->
 	receive
 	{result,Ref,Result,Counter} ->
 		{result,Result,Counter};
+	{'EXIT',Pid,memory_limit} ->
+		{result,memory_limit};
 	{'EXIT',Pid,_ErrTypeReason} ->
 		{result,unknown}
 	after Timeout ->

@@ -20,6 +20,8 @@ handle('GET', "verify_fibonacci", Req) ->
 		return(Req, "wrong answer");
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
+	{result,memory_limit} ->
+		return(Req, "memory limit exceeded");
 	_ ->
 		return(Req, "unknown error")
 	end;
@@ -41,6 +43,8 @@ handle('GET', "verify_factorial", Req) ->
 		return(Req, "wrong answer");
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
+	{result,memory_limit} ->
+		return(Req, "memory limit exceeded");
 	_ ->
 		return(Req, "unknown error")
 	end;
@@ -68,6 +72,8 @@ handle('GET', "evaluate", Req) ->
 		return(Req, RetData);
 	{result,timeout} ->
 		return(Req, "time limit exceeded");
+	{result,memory_limit} ->
+		return(Req, "memory limit exceeded");
 	_ ->
 		return(Req, "unknown error")
 	end;
